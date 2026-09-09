@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gynzy-стиль: історія визначників і матриць</title>
+<style>
+:root{
+  --bg1:#eef8ff;
+  --bg2:#fff9ec;
+  --panel:#ffffff;
+  --ink:#18324a;
+  --muted:#5b7289;
+  --line:#cfe0ee;
+  --blue:#78b7e3;
+  --blue2:#4c8ec4;
+  --green:#9fddc0;
+  --green2:#52a779;
+  --yellow:#ffe191;
+  --peach:#ffd4be;
+  --lav:#d9cff8;
+  --ok:#dff6e8;
+  --bad:#fde7e7;
+  --shadow:0 10px 24px rgba(60,95,130,.12);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, #f9fdff 0%, #eef8ff 35%, transparent 36%),
+    radial-gradient(circle at bottom right, #fff7e8 0%, #fff0d8 28%, transparent 29%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+}
+.frame{
+  min-height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.board{
+  width:min(96vw, 1280px);
+  aspect-ratio:4/3;
+  background:linear-gradient(180deg,#fbfeff,#fffdf8);
+  border:4px solid #d7ebf7;
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.topbar{
+  padding:18px 22px 12px;
+  background:linear-gradient(180deg,#f8fdff,#f5fbff);
+  border-bottom:1px solid var(--line);
+}
+.title{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+.title h1{
+  margin:0;
+  font-size:clamp(24px,2.2vw,38px);
+  line-height:1.1;
+}
+.subtitle{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:clamp(14px,1.2vw,18px);
+}
+.scorebox{
+  white-space:nowrap;
+  background:#eef7ff;
+  border:2px solid #cce4f6;
+  border-radius:20px;
+  padding:10px 14px;
+  font-weight:800;
+  align-self:flex-start;
+}
+.tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.tab{
+  border:none;
+  border-radius:16px;
+  padding:10px 14px;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  background:#e9f5ff;
+  color:var(--ink);
+}
+.tab.active{background:var(--blue2); color:white}
+.content{
+  flex:1;
+  padding:16px;
+  overflow:hidden;
+}
+.page{
+  display:none;
+  height:100%;
+  background:linear-gradient(180deg,#ffffff,#fbfdff);
+  border:2px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  overflow:hidden;
+}
+.page.active{display:flex; flex-direction:column; gap:12px}
+.taskhead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.taskhead h2{
+  margin:0;
+  font-size:clamp(24px,2vw,32px);
+}
+.help{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:clamp(14px,1vw,17px);
+}
+.chip{
+  padding:8px 12px;
+  border-radius:999px;
+  background:#fff7d8;
+  border:2px solid #ffe191;
+  font-weight:800;
+}
+.pagebody{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+}
+.panel{
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 4px 12px rgba(80,110,130,.06);
+}
+.controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+button.action{
+  border:none;
+  border-radius:16px;
+  padding:12px 16px;
+  font-size:17px;
+  font-weight:800;
+  cursor:pointer;
+  color:var(--ink);
+  background:#eaf4fb;
+}
+button.primary{background:var(--blue2); color:white}
+button.good{background:var(--green2); color:white}
+button.warn{background:#ffdd88}
+.result{
+  background:#eef6fb;
+  border:2px solid #d6e8f3;
+  border-radius:18px;
+  padding:12px 14px;
+  font-weight:800;
+  font-size:18px;
+}
+.smalltext{font-size:14px; color:var(--muted)}
+.sort-area{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:12px;
+}
+.sort-list{
+  display:grid;
+  gap:10px;
+}
+.timeline-card{
+  background:linear-gradient(180deg,#fefefe,#f6fbff);
+  border:2px solid #d8e8f3;
+  border-radius:20px;
+  padding:14px 16px;
+  display:grid;
+  grid-template-columns: 90px 1fr;
+  gap:14px;
+  align-items:center;
+  cursor:grab;
+  user-select:none;
+}
+.timeline-card:active{cursor:grabbing}
+.timeline-card.dragging{
+  opacity:.45;
+  border-style:dashed;
+}
+.year{
+  background:#eaf5ff;
+  border:2px solid #bfdcf1;
+  color:var(--blue2);
+  border-radius:16px;
+  font-weight:900;
+  font-size:18px;
+  padding:12px 10px;
+  text-align:center;
+}
+.timeline-card h3{
+  margin:0 0 5px;
+  font-size:22px;
+}
+.timeline-card p{
+  margin:0;
+  color:var(--muted);
+  font-size:15px;
+}
+.order-note{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-weight:800;
+  color:var(--muted);
+}
+.match-list, .classify-list{
+  display:grid;
+  gap:12px;
+}
+.match-row{
+  display:grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap:12px;
+  align-items:center;
+}
+.match-name{
+  background:linear-gradient(180deg,#f9fdff,#f2f9ff);
+  border:2px solid #dcecf7;
+  border-radius:18px;
+  padding:16px;
+  font-size:22px;
+  font-weight:800;
+}
+select.big{
+  width:100%;
+  border:2px solid #cfe0ee;
+  border-radius:18px;
+  padding:16px;
+  font-size:18px;
+  background:white;
+}
+select.correct, .statement.correct{background:var(--ok)}
+select.incorrect, .statement.incorrect{background:var(--bad)}
+.statement{
+  border:2px solid #dcecf7;
+  border-radius:18px;
+  padding:14px;
+  background:linear-gradient(180deg,#fff,#f9fcff);
+}
+.statement-text{
+  font-size:21px;
+  font-weight:700;
+  line-height:1.25;
+}
+.choice-row{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.choice{
+  border:none;
+  border-radius:16px;
+  padding:11px 16px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+  background:#eaf4fb;
+}
+.choice.selected.det{background:#92c9ee; color:#17324d}
+.choice.selected.mat{background:#b4e3c7; color:#17324d}
+.summary-grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap:14px;
+  height:100%;
+}
+.bullets{
+  display:grid;
+  gap:10px;
+}
+.bullet{
+  background:linear-gradient(180deg,#fffdf3,#fff);
+  border:2px solid #f5e2a7;
+  border-radius:18px;
+  padding:14px;
+  font-size:20px;
+}
+.big-score{
+  font-size:54px;
+  font-weight:900;
+  text-align:center;
+  margin:6px 0 10px;
+  color:var(--blue2);
+}
+.center{text-align:center}
+.final-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:12px;
+}
+.correct-card{background:var(--ok)!important}
+.incorrect-card{background:var(--bad)!important}
+@media (max-width: 980px){
+  .board{aspect-ratio:auto; min-height:96vh}
+  .match-row, .summary-grid{grid-template-columns:1fr}
+  .timeline-card{grid-template-columns: 1fr}
+  .year{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="board">
+    <div class="topbar">
+      <div class="title">
+        <div>
+          <h1>Історія виникнення понять «визначник» і «матриця»</h1>
+          <p class="subtitle">Gynzy-стиль · пастельний дизайн 4:3 · великі картки · інтерактивна вправа для дошки</p>
+        </div>
+        <div class="scorebox" id="scoreBadge">Результат: 0 / 20</div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-page="page1">1. Хронологія</button>
+        <button class="tab" data-page="page2">2. Відповідності</button>
+        <button class="tab" data-page="page3">3. Класифікація</button>
+        <button class="tab" data-page="page4">4. Підсумок</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <section class="page active" id="page1">
+        <div class="taskhead">
+          <div>
+            <h2>1. Віднови хронологію</h2>
+            <p class="help">Перетягуй картки мишею, щоб розташувати події від найдавнішої до найпізнішої.</p>
+          </div>
+          <div class="chip">9 балів</div>
+        </div>
+        <div class="pagebody">
+          <div class="panel sort-area">
+            <div class="order-note">
+              <span>↑ Найдавніша подія</span>
+              <span>↓ Найпізніша подія</span>
+            </div>
+            <div id="timelineList" class="sort-list"></div>
+            <div class="controls">
+              <button class="action" id="shuffleTimeline">Перемішати</button>
+              <button class="action primary" id="checkTimeline">Перевірити</button>
+              <button class="action" id="showTimeline">Показати правильний порядок</button>
+            </div>
+            <div class="result" id="timelineResult">Поки що завдання не перевірено.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page2">
+        <div class="taskhead">
+          <div>
+            <h2>2. Математик ↔ внесок</h2>
+            <p class="help">Вибери правильний внесок для кожного математика.</p>
+          </div>
+          <div class="chip">5 балів</div>
+        </div>
+        <div class="pagebody">
+          <div class="panel">
+            <div id="matchList" class="match-list"></div>
+            <div class="controls" style="margin-top:12px">
+              <button class="action primary" id="checkMatches">Перевірити</button>
+            </div>
+            <div class="result" id="matchResult">Поки що завдання не перевірено.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page3">
+        <div class="taskhead">
+          <div>
+            <h2>3. Визначники чи матриці?</h2>
+            <p class="help">Для кожного твердження обери правильну категорію.</p>
+          </div>
+          <div class="chip">6 балів</div>
+        </div>
+        <div class="pagebody">
+          <div class="panel">
+            <div id="classifyList" class="classify-list"></div>
+            <div class="controls" style="margin-top:12px">
+              <button class="action primary" id="checkClassify">Перевірити</button>
+            </div>
+            <div class="result" id="classifyResult">Поки що завдання не перевірено.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page4">
+        <div class="taskhead">
+          <div>
+            <h2>4. Підсумок</h2>
+            <p class="help">Натисни кнопку, щоб підрахувати загальний результат, або почни спочатку.</p>
+          </div>
+          <div class="chip">Разом: 20 балів</div>
+        </div>
+        <div class="pagebody">
+          <div class="summary-grid">
+            <div class="panel">
+              <h3 style="margin-top:0;font-size:26px">Що важливо запам’ятати?</h3>
+              <div class="bullets">
+                <div class="bullet">1. <strong>Визначники</strong> історично виникли раніше за <strong>матриці</strong>.</div>
+                <div class="bullet">2. Спочатку визначники використовували для розв’язування систем лінійних рівнянь.</div>
+                <div class="bullet">3. Термін <strong>matrix</strong> запровадив Джеймс Джозеф Сильвестр у 1850 році.</div>
+                <div class="bullet">4. Артур Келі розвинув матричну алгебру як самостійну теорію.</div>
+                <div class="bullet">5. Історична схема: <strong>системи рівнянь → визначники → матриці → лінійна алгебра</strong>.</div>
+              </div>
+            </div>
+            <div class="panel center">
+              <h3 style="margin:0;font-size:26px">Твій результат</h3>
+              <div class="big-score" id="bigScore">0 / 20</div>
+              <div class="result" id="finalResult">Виконай усі три завдання, а потім натисни «Підрахувати результат».</div>
+              <div class="final-actions">
+                <button class="action good" id="finalCheck">Підрахувати результат</button>
+                <button class="action warn" id="resetAll">Пройти ще раз</button>
+              </div>
+              <p class="smalltext" style="margin-top:14px">Порада: цю HTML-вправу можна опублікувати онлайн і відкрити з кнопки в Gynzy.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const timelineSource = [
+    {id:1, year:"II ст. до н. е. – I ст. н. е.", name:"Стародавній Китай", text:"У «Дев’яти книгах математичного мистецтва» коефіцієнти систем записували у вигляді таблиць."},
+    {id:2, year:"1683", name:"Секі Такакадзу", text:"Використовував вирази, аналогічні визначникам 2–5 порядку."},
+    {id:3, year:"1693", name:"Готфрід Вільгельм Лейбніц", text:"Досліджував вирази, що відповідають сучасним визначникам."},
+    {id:4, year:"1750", name:"Габріель Крамер", text:"Сформулював правило Крамера для систем лінійних рівнянь."},
+    {id:5, year:"1772", name:"П’єр-Симон Лаплас", text:"Описав розклад визначника, відомий як розклад Лапласа."},
+    {id:6, year:"1801", name:"Карл Фрідріх Гаусс", text:"Використав термін determinant."},
+    {id:7, year:"1812", name:"Огюстен-Луї Коші", text:"Систематично розвинув сучасну теорію визначників."},
+    {id:8, year:"1850", name:"Джеймс Джозеф Сильвестр", text:"Запровадив термін matrix."},
+    {id:9, year:"1858", name:"Артур Келі", text:"Розвинув матричну алгебру як теорію самостійних об’єктів."}
+  ];
+
+  const matchSource = [
+    ["Секі Такакадзу","Ранні обчислення виразів, аналогічних визначникам"],
+    ["Габріель Крамер","Правило розв’язування систем через визначники"],
+    ["Карл Фрідріх Гаусс","Використання терміна determinant"],
+    ["Джеймс Джозеф Сильвестр","Запровадження терміна matrix"],
+    ["Артур Келі","Створення основ матричної алгебри"]
+  ];
+
+  const classifySource = [
+    ["Історично це поняття з’явилося раніше.", "det"],
+    ["Значення для квадратної таблиці є числом.", "det"],
+    ["Його можна трактувати як коефіцієнт зміни площі або об’єму.", "det"],
+    ["Це прямокутна таблиця елементів.", "mat"],
+    ["Для нього визначені операції додавання та множення.", "mat"],
+    ["У XIX столітті його почали розглядати як самостійний математичний об’єкт.", "mat"]
+  ];
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  let timeline = [];
+  let scores = {t:0, m:0, c:0};
+
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function setTabs(){
+    $$(".tab").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        $$(".tab").forEach(b=>b.classList.remove("active"));
+        $$(".page").forEach(p=>p.classList.remove("active"));
+        btn.classList.add("active");
+        $("#" + btn.dataset.page).classList.add("active");
+      });
+    });
+  }
+
+  function renderTimeline(){
+    const box = $("#timelineList");
+    box.innerHTML = "";
+    timeline.forEach(item=>{
+      const card = document.createElement("div");
+      card.className = "timeline-card";
+      card.draggable = true;
+      card.dataset.id = String(item.id);
+      card.innerHTML = `
+        <div class="year">${item.year}</div>
+        <div>
+          <h3>${item.name}</h3>
+          <p>${item.text}</p>
+        </div>`;
+      box.appendChild(card);
+    });
+    attachDragHandlers();
+  }
+
+  function attachDragHandlers(){
+    const list = $("#timelineList");
+    const draggables = $$("#timelineList .timeline-card");
+
+    draggables.forEach(card=>{
+      card.addEventListener("dragstart", ()=> card.classList.add("dragging"));
+      card.addEventListener("dragend", ()=> card.classList.remove("dragging"));
+    });
+
+    list.addEventListener("dragover", e=>{
+      e.preventDefault();
+      const dragging = document.querySelector(".timeline-card.dragging");
+      if(!dragging) return;
+      const afterElement = getDragAfterElement(list, e.clientY);
+      if(afterElement == null) list.appendChild(dragging);
+      else list.insertBefore(dragging, afterElement);
+    });
+  }
+
+  function getDragAfterElement(container, y){
+    const els = [...container.querySelectorAll(".timeline-card:not(.dragging)")];
+    return els.reduce((closest, child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if(offset < 0 && offset > closest.offset){
+        return {offset: offset, element: child};
+      } else {
+        return closest;
+      }
+    }, {offset: Number.NEGATIVE_INFINITY}).element;
+  }
+
+  function readTimelineFromDOM(){
+    const orderIds = $$("#timelineList .timeline-card").map(card => Number(card.dataset.id));
+    timeline = orderIds.map(id => timelineSource.find(item=>item.id===id));
+  }
+
+  function checkTimeline(){
+    readTimelineFromDOM();
+    let correct = 0;
+    $$("#timelineList .timeline-card").forEach((card, index)=>{
+      card.classList.remove("correct-card","incorrect-card");
+      if(timeline[index].id === timelineSource[index].id){
+        correct++;
+        card.classList.add("correct-card");
+      }else{
+        card.classList.add("incorrect-card");
+      }
+    });
+    scores.t = correct;
+    $("#timelineResult").textContent = `Правильно розташовано ${correct} з 9 карток. Балів: ${correct} / 9.`;
+    updateScore();
+  }
+
+  function showTimeline(){
+    timeline = [...timelineSource];
+    renderTimeline();
+    $("#timelineResult").textContent = "Показано правильний порядок. Тепер можна ще раз перемішати та повторити.";
+    scores.t = 9;
+    updateScore();
+  }
+
+  function renderMatches(){
+    const wrap = $("#matchList");
+    wrap.innerHTML = "";
+    const options = matchSource.map(x=>x[1]);
+    matchSource.forEach(([name, answer])=>{
+      const row = document.createElement("div");
+      row.className = "match-row";
+      const left = document.createElement("div");
+      left.className = "match-name";
+      left.textContent = name;
+      const right = document.createElement("select");
+      right.className = "big";
+      right.dataset.answer = answer;
+      right.innerHTML = `<option value="">— обери внесок —</option>` +
+        options.map(o=>`<option>${o}</option>`).join("");
+      row.appendChild(left);
+      row.appendChild(right);
+      wrap.appendChild(row);
+    });
+  }
+
+  function checkMatches(){
+    let correct = 0;
+    $$("#matchList select").forEach(sel=>{
+      sel.classList.remove("correct","incorrect");
+      if(sel.value === sel.dataset.answer){
+        correct++;
+        sel.classList.add("correct");
+      }else{
+        sel.classList.add("incorrect");
+      }
+    });
+    scores.m = correct;
+    $("#matchResult").textContent = `Правильних відповідностей: ${correct} з 5. Балів: ${correct} / 5.`;
+    updateScore();
+  }
+
+  function renderClassify(){
+    const wrap = $("#classifyList");
+    wrap.innerHTML = "";
+    classifySource.forEach(([text, answer], idx)=>{
+      const box = document.createElement("div");
+      box.className = "statement";
+      box.dataset.answer = answer;
+      box.dataset.choice = "";
+      box.innerHTML = `
+        <div class="statement-text">${idx+1}. ${text}</div>
+        <div class="choice-row">
+          <button class="choice det" data-choice="det">Визначники</button>
+          <button class="choice mat" data-choice="mat">Матриці</button>
+        </div>`;
+      box.querySelectorAll(".choice").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          box.dataset.choice = btn.dataset.choice;
+          box.querySelectorAll(".choice").forEach(x=>x.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+      wrap.appendChild(box);
+    });
+  }
+
+  function checkClassify(){
+    let correct = 0;
+    $$("#classifyList .statement").forEach(box=>{
+      box.classList.remove("correct","incorrect");
+      if(box.dataset.choice === box.dataset.answer){
+        correct++;
+        box.classList.add("correct");
+      }else{
+        box.classList.add("incorrect");
+      }
+    });
+    scores.c = correct;
+    $("#classifyResult").textContent = `Правильних відповідей: ${correct} з 6. Балів: ${correct} / 6.`;
+    updateScore();
+  }
+
+  function updateScore(){
+    const total = scores.t + scores.m + scores.c;
+    $("#scoreBadge").textContent = `Результат: ${total} / 20`;
+    $("#bigScore").textContent = `${total} / 20`;
+  }
+
+  function finalCheck(){
+    checkTimeline();
+    checkMatches();
+    checkClassify();
+    const total = scores.t + scores.m + scores.c;
+    let msg = "";
+    if(total >= 18) msg = "Відмінно! Матеріал засвоєно дуже добре.";
+    else if(total >= 14) msg = "Добре! Є лише кілька моментів для повторення.";
+    else if(total >= 10) msg = "Непогано. Переглянь помилки та спробуй ще раз.";
+    else msg = "Потрібно ще раз опрацювати матеріал і повторити вправу.";
+    $("#finalResult").textContent = `Підсумок: ${total} / 20. ${msg}`;
+    $$(".tab").forEach(b=>b.classList.remove("active"));
+    $$(".page").forEach(p=>p.classList.remove("active"));
+    $('[data-page="page4"]').classList.add("active");
+    $("#page4").classList.add("active");
+  }
+
+  function resetAll(){
+    timeline = shuffle(timelineSource);
+    scores = {t:0, m:0, c:0};
+    renderTimeline();
+    renderMatches();
+    renderClassify();
+    $("#timelineResult").textContent = "Поки що завдання не перевірено.";
+    $("#matchResult").textContent = "Поки що завдання не перевірено.";
+    $("#classifyResult").textContent = "Поки що завдання не перевірено.";
+    $("#finalResult").textContent = "Виконай усі три завдання, а потім натисни «Підрахувати результат».";
+    updateScore();
+    $$(".tab").forEach(b=>b.classList.remove("active"));
+    $$(".page").forEach(p=>p.classList.remove("active"));
+    $('[data-page="page1"]').classList.add("active");
+    $("#page1").classList.add("active");
+  }
+
+  setTabs();
+  $("#shuffleTimeline").addEventListener("click", ()=>{ timeline = shuffle(timelineSource); renderTimeline(); $("#timelineResult").textContent = "Картки перемішано."; scores.t = 0; updateScore(); });
+  $("#checkTimeline").addEventListener("click", checkTimeline);
+  $("#showTimeline").addEventListener("click", showTimeline);
+  $("#checkMatches").addEventListener("click", checkMatches);
+  $("#checkClassify").addEventListener("click", checkClassify);
+  $("#finalCheck").addEventListener("click", finalCheck);
+  $("#resetAll").addEventListener("click", resetAll);
+
+  resetAll();
+})();
+</script>
+</body>
+</html>
